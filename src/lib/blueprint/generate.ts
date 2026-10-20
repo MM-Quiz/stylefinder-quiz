@@ -2,9 +2,9 @@
  * Blueprint generation.
  *
  * Calls Claude to write a StyleFinder ID® Signature Style Blueprint from a
- * client's three StyleTypes. The instructions are sent as a cached system
- * prompt, so repeat generations pay roughly a tenth of the input cost for
- * that portion.
+ * client's three StyleTypes. The instructions and Mary Michele's authored
+ * examples are sent as a cached system prompt, so repeat generations pay
+ * roughly a tenth of the input cost for that portion.
  */
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -16,6 +16,7 @@ import {
 } from './prompt';
 import { getArchetype, asStyleType, type StyleType } from './archetypes';
 import { assembleBlueprint } from './boilerplate';
+import { BLUEPRINT_EXAMPLES } from './samples';
 import type { StyleResult } from '../types';
 
 export const BLUEPRINT_MODEL = 'claude-opus-5';
@@ -119,12 +120,14 @@ export async function generateBlueprint(
       thinking: { type: 'adaptive' },
       output_config: { effort: 'high' },
       system: [
+        { type: 'text', text: BLUEPRINT_INSTRUCTIONS },
         {
           type: 'text',
-          text: BLUEPRINT_INSTRUCTIONS,
-          // The instructions are identical for every client; only the short
-          // user message below varies. Caching them cuts the cost of each
-          // additional Blueprint to roughly a tenth on this portion.
+          text: BLUEPRINT_EXAMPLES,
+          // The instructions and examples are identical for every client;
+          // only the short user message below varies. One breakpoint here
+          // caches both blocks, cutting the cost of each additional
+          // Blueprint to roughly a tenth on this portion.
           cache_control: { type: 'ephemeral' },
         },
       ],
