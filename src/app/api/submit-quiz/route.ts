@@ -1,9 +1,76 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { QuizSubmission } from '@/lib/types';
 import { calculateStyleScores, validateQuizSubmission } from '@/lib/scoring';
 import { generateCoachEmail, sendEmail, validateEmailConfig } from '@/lib/email';
 import { logger, trackQuizSubmission, trackEmailEvent, trackAPIPerformance, initializeMonitoring } from '@/lib/logger';
 import { saveQuizSubmission, updateEmailStatus, queueEmail, isDatabaseConfigured } from '@/lib/supabase';
+import { deliverBlueprint } from '@/lib/blueprint/deliver';
+import { isBlueprintConfigured } from '@/lib/blueprint/generate';
+import type { StyleResult } from '@/lib/types';
+
+/**
+ * The Blueprint is generated after the response is sent, and generation runs
+ * at high effort for well over a minute. The function must stay alive for it.
+ */
+export const maxDuration = 300;
+
+/**
+ * Deliver her Blueprint once the response is on its way, so she sees her
+ * confirmation immediately instead of waiting on generation.
+ *
+ * Needs the saved submission: the Blueprint row references it.
+ */
+function scheduleBlueprint(
+  submission: QuizSubmission,
+  results: StyleResult,
+  submissionId: string | undefined,
+  origin: string,
+) {
+  if (!submissionId) {
+    logger.warn('blueprint', 'Submission not saved - skipping automatic Blueprint', {
+      userName: submission.userName,
+    }, submission.userEmail);
+    return;
+  }
+  if (!isBlueprintConfigured()) {
+    logger.warn('blueprint', 'ANTHROPIC_API_KEY not set - skipping automatic Blueprint', {
+      submissionId,
+    }, submission.userEmail);
+    return;
+  }
+
+  after(async () => {
+    try {
+      const delivery = await deliverBlueprint({
+        submissionId,
+        clientName: submission.userName,
+        clientEmail: submission.userEmail,
+        results,
+        origin,
+        generatedBy: 'auto',
+      });
+      if (delivery.saved) {
+        logger.info('blueprint', 'Automatic Blueprint delivered', {
+          submissionId,
+          blueprintId: delivery.blueprintId,
+          emailed: delivery.emailed,
+          emailError: delivery.emailError,
+        }, submission.userEmail);
+      } else {
+        logger.error('blueprint', 'Automatic Blueprint generated but not saved', {
+          submissionId,
+          error: delivery.error,
+        }, submission.userEmail);
+      }
+    } catch (error: unknown) {
+      // The coach can still generate it from the admin dashboard.
+      logger.error('blueprint', 'Automatic Blueprint failed', {
+        submissionId,
+        error: error instanceof Error ? error.message : String(error),
+      }, submission.userEmail);
+    }
+  });
+}
 
 // Initialize monitoring on first API call
 let monitoringInitialized = false;
@@ -138,6 +205,13 @@ export async function POST(request: NextRequest) {
         userName: submission.userName
       }, submission.userEmail);
     }
+
+    scheduleBlueprint(
+      submission,
+      results,
+      submissionId,
+      process.env.APP_URL ?? request.nextUrl.origin,
+    );
 
     // Track successful API response
     const responseTime = Date.now() - startTime;

@@ -7,18 +7,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSubmissionById } from '@/lib/supabase';
-import { sendEmail } from '@/lib/email';
 import {
-  generateBlueprint,
-  subjectFromResult,
   isBlueprintConfigured,
   BlueprintError,
 } from '@/lib/blueprint/generate';
-import {
-  saveBlueprint,
-  updateBlueprintEmailStatus,
-} from '@/lib/blueprint/storage';
-import { generateBlueprintEmail } from '@/lib/blueprint/email';
+import { deliverBlueprint } from '@/lib/blueprint/deliver';
 import type { StyleResult } from '@/lib/types';
 
 /** Generation runs at high effort and can take well over a minute. */
@@ -87,17 +80,22 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    const subject = subjectFromResult(submission.user_name, results);
-    const blueprint = await generateBlueprint(subject);
+    const delivery = await deliverBlueprint({
+      submissionId,
+      clientName: submission.user_name,
+      clientEmail: submission.user_email,
+      results,
+      origin: process.env.APP_URL ?? request.nextUrl.origin ?? undefined,
+      generatedBy: 'admin',
+    });
 
-    const stored = await saveBlueprint(submissionId, blueprint, 'admin');
-    if (!stored.success) {
+    if (!delivery.saved) {
       // The prose exists but could not be persisted. Return it rather than
       // discarding work the client already paid for, and say so plainly.
       return NextResponse.json(
         {
-          error: `Blueprint generated but could not be saved: ${stored.error}`,
-          markdown: blueprint.markdown,
+          error: `Blueprint generated but could not be saved: ${delivery.error}`,
+          markdown: delivery.markdown,
           saved: false,
           emailed: false,
         },
@@ -105,47 +103,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const origin =
-      process.env.APP_URL ?? request.nextUrl.origin ?? undefined;
-
-    const email = generateBlueprintEmail({
-      clientName: submission.user_name,
-      clientEmail: submission.user_email,
-      markdown: blueprint.markdown,
-      archetype: blueprint.archetype,
-      primary: blueprint.primary,
-      secondary: blueprint.secondary,
-      supporting: blueprint.supporting,
-      viewUrl: origin
-        ? `${origin}/blueprint/${stored.blueprintId}`
-        : undefined,
-    });
-
-    let emailed = false;
-    let emailError: string | undefined;
-    try {
-      emailed = await sendEmail(email);
-      if (!emailed) emailError = 'Email was not sent (disabled or rate limited)';
-    } catch (err: unknown) {
-      emailError = err instanceof Error ? err.message : 'Email failed';
-    }
-
-    await updateBlueprintEmailStatus(stored.blueprintId!, emailed, emailError);
-
-    return NextResponse.json({
-      success: true,
-      blueprintId: stored.blueprintId,
-      archetype: blueprint.archetype,
-      markdown: blueprint.markdown,
-      saved: true,
-      emailed,
-      emailError,
-      usage: {
-        inputTokens: blueprint.inputTokens,
-        outputTokens: blueprint.outputTokens,
-        cacheReadTokens: blueprint.cacheReadTokens,
-      },
-    });
+    return NextResponse.json({ success: true, ...delivery });
   } catch (error) {
     if (error instanceof BlueprintError) {
       console.error('Blueprint generation failed:', error.message, error.cause);
