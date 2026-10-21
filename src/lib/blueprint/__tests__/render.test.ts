@@ -82,3 +82,36 @@ describe('renderBlueprintText', () => {
     expect(text).toContain('• First');
   });
 });
+
+describe('numbered lists and links', () => {
+  const topTen = '## 10. TOP 10 ITEMS\n\n1. A silk blouse\n2. Dark-wash jeans\n10. A luxury handbag';
+
+  it('renders the Top 10 as a numbered list, one item per entry', () => {
+    const html = renderBlueprintHtml(topTen);
+    expect(html).toContain('<ol>\n<li>A silk blouse</li>\n<li>Dark-wash jeans</li>');
+    expect(html).toContain('<li>A luxury handbag</li>\n</ol>');
+    expect(html).not.toContain('<p>1.');
+  });
+
+  it('closes a bulleted list before a numbered one starts', () => {
+    const html = renderBlueprintHtml('- Bullet\n1. Number');
+    expect(html).toBe('<ul>\n<li>Bullet</li>\n</ul>\n<ol>\n<li>Number</li>\n</ol>');
+  });
+
+  it('renders http(s) links', () => {
+    expect(renderBlueprintHtml('[Podcast](https://podcasts.apple.com/x)')).toBe(
+      '<p><a href="https://podcasts.apple.com/x">Podcast</a></p>',
+    );
+  });
+
+  it('does not link other URL schemes', () => {
+    const html = renderBlueprintHtml('[click](javascript:alert(1))');
+    expect(html).not.toContain('<a');
+  });
+
+  it('spells out links in the plain-text version', () => {
+    expect(renderBlueprintText('[Podcast](https://podcasts.apple.com/x)')).toBe(
+      'Podcast: https://podcasts.apple.com/x',
+    );
+  });
+});

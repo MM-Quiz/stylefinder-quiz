@@ -126,6 +126,10 @@ Hair and makeup guidance belongs in the beauty-routine subheading and comes from
 
 Use language such as "you may find," "this can show up as," "you may feel most like yourself when…" when describing subjective or psychological experiences.
 
+Mary Michele's word choices — follow these exactly:
+- Say "native language," never "mother tongue" — for example, "Romantic is your native language."
+- Describe a Romantic palette as "a palette of rich hues and metallics," never "dusk and metal."
+
 Use more definitive language when describing the established visual principles of the StyleFinder ID®.
 
 FINAL QUALITY CHECK

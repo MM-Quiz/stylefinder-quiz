@@ -17,6 +17,7 @@ import {
 import { getArchetype, asStyleType, type StyleType } from './archetypes';
 import { assembleBlueprint } from './boilerplate';
 import { BLUEPRINT_EXAMPLES } from './samples';
+import { applyHouseStyle } from './house-style';
 import type { StyleResult } from '../types';
 
 export const BLUEPRINT_MODEL = 'claude-opus-5';
@@ -142,11 +143,13 @@ export async function generateBlueprint(
       );
     }
 
-    const markdown = message.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
-      .join('')
-      .trim();
+    const markdown = applyHouseStyle(
+      message.content
+        .filter((block): block is Anthropic.TextBlock => block.type === 'text')
+        .map((block) => block.text)
+        .join('')
+        .trim(),
+    );
 
     if (!markdown) {
       throw new BlueprintError('Generation returned no text.');
