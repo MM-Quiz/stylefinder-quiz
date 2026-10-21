@@ -33,3 +33,14 @@ describe('boilerplate', () => {
     expect(closing).toBeGreaterThan(body);
   });
 });
+
+describe("Let's Connect", () => {
+  it.each([
+    'https://substack.com/@secretsofsignaturestyle',
+    'https://www.instagram.com/marymicheleofficial/',
+    'https://podcasts.apple.com/us/podcast/the-art-of-becoming-visible/id1560924181',
+    'https://www.linkedin.com/in/marymichelenidiffer/',
+  ])('links to %s', (url) => {
+    expect(ABOUT_MARY_MICHELE).toContain(`](${url})`);
+  });
+});

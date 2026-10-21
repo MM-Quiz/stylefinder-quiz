@@ -60,6 +60,17 @@ body {
   list-style: disc;
 }
 
+.blueprint-body ol {
+  margin: 0 0 1.25rem;
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+
+.blueprint-body a {
+  color: #9c5c74;
+  text-decoration: underline;
+}
+
 .blueprint-body li {
   margin-bottom: 0.5rem;
 }

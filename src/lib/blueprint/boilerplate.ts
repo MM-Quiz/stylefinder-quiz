@@ -43,11 +43,10 @@ Through coaching, courses, workshops, retreats, VIP Days, and powerful online co
 
 ### Let's Connect
 
-- Podcast — The Art of Becoming Visible
-- Substack — The Art of Becoming Visible
-- Instagram — @marymicheleofficial
-- LinkedIn — Mary Michele Nidiffer
-- Facebook — The Art of Becoming Visible
+- [Discover Secrets of Signature Style on Substack](https://substack.com/@secretsofsignaturestyle)
+- Instagram: [@marymicheleofficial](https://www.instagram.com/marymicheleofficial/)
+- [Listen to the podcast: The Art of Becoming Visible](https://podcasts.apple.com/us/podcast/the-art-of-becoming-visible/id1560924181)
+- LinkedIn: [Mary Michele Nidiffer](https://www.linkedin.com/in/marymichelenidiffer/)
 
 *"What you wear tells the world who you are. What is your wardrobe saying about you?"*`;
 

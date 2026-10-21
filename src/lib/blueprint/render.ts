@@ -4,7 +4,8 @@
  * Turns the generated Markdown into the HTML used by both the client email and
  * the printable page. Deliberately a small hand-rolled renderer rather than a
  * Markdown dependency: the generator is instructed to emit a known, narrow
- * subset (headings, paragraphs, bullets, bold, italic), and email clients need
+ * subset (headings, paragraphs, bulleted and numbered lists, bold, italic,
+ * links), and email clients need
  * inline styles anyway.
  */
 
@@ -19,9 +20,13 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"]/g, (char) => ESCAPES[char]);
 }
 
+/** Markdown links. Only http(s) targets, so text cannot smuggle in a script URL. */
+const LINK = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
 /** Inline emphasis, applied after escaping so generated text cannot inject HTML. */
 function inline(text: string): string {
   return escapeHtml(text)
+    .replace(LINK, '<a href="$2">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
 }
@@ -39,7 +44,7 @@ export function renderBlueprintHtml(
   const lines = markdown.split('\n');
   const out: string[] = [];
 
-  let inList = false;
+  let list: 'ul' | 'ol' | null = null;
   let paragraph: string[] = [];
 
   const flushParagraph = () => {
@@ -50,10 +55,20 @@ export function renderBlueprintHtml(
   };
 
   const closeList = () => {
-    if (inList) {
-      out.push('</ul>');
-      inList = false;
+    if (list) {
+      out.push(`</${list}>`);
+      list = null;
     }
+  };
+
+  const listItem = (type: 'ul' | 'ol', text: string) => {
+    flushParagraph();
+    if (list !== type) {
+      closeList();
+      out.push(`<${type}>`);
+      list = type;
+    }
+    out.push(`<li>${inline(text)}</li>`);
   };
 
   for (const rawLine of lines) {
@@ -76,12 +91,15 @@ export function renderBlueprintHtml(
 
     const bullet = line.match(/^[-*+]\s+(.*)$/);
     if (bullet) {
-      flushParagraph();
-      if (!inList) {
-        out.push('<ul>');
-        inList = true;
-      }
-      out.push(`<li>${inline(bullet[1])}</li>`);
+      listItem('ul', bullet[1]);
+      continue;
+    }
+
+    // The Top 10 and other numbered lists. The <ol> renumbers from 1, which
+    // matches how the generator writes them.
+    const numbered = line.match(/^\d+[.)]\s+(.*)$/);
+    if (numbered) {
+      listItem('ol', numbered[1]);
       continue;
     }
 
@@ -144,7 +162,8 @@ export function renderBlueprintHtml(
   }
   h3 { font-size: 1.02rem; margin: 1.75em 0 .4em; color: #1f1f1f; }
   p { margin: 0 0 1em; }
-  ul { margin: 0 0 1.25em; padding-left: 1.25em; }
+  ul, ol { margin: 0 0 1.25em; padding-left: 1.25em; }
+  a { color: #9c5c74; }
   li { margin-bottom: .5em; }
   hr { border: 0; border-top: 1px solid #f0e3e8; margin: 2.5em 0; }
   .masthead {
@@ -185,6 +204,7 @@ ${body}
 export function renderBlueprintText(markdown: string): string {
   return markdown
     .replace(/^#{1,6}\s+/gm, '')
+    .replace(LINK, '$1: $2')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/(^|[^*])\*([^*]+)\*/g, '$1$2')
     .replace(/^[-*+]\s+/gm, '  • ')
