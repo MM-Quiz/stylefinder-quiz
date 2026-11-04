@@ -35,11 +35,21 @@ The Visibility Stylist™`;
 /** The About page. Identical in every Blueprint. */
 export const ABOUT_MARY_MICHELE = `## About Mary Michele
 
-Mary Michele Nidiffer is The Visibility Stylist™, a Master Style & Empowerment Coach and the creator of the StyleFinder ID® System, the **first framework to decode your style DNA and align your wardrobe, brand, and your leadership presence**. She is passionate about helping midlife women break free from the Invisibility Trap — the exhausting cycle of feeling not enough, shrinking into victimhood, and chasing external validation — so they can reclaim their identity, embody unapologetic confidence, and lead with magnetic presence.
+Mary Michele Nidiffer is a Master Style & Empowerment Coach, speaker, and creator of the StyleFinder ID® System—a proprietary framework designed to decode your unique style DNA and help you express who you are through what you wear.
 
-A North Carolina native, Mary Michele knows firsthand what it feels like to wrestle with low self-esteem and the belief of not being enough. Her personal journey from insecurity to empowerment fuels her mission to guide women in transforming not just their wardrobes, but their entire self-image.
+For more than 15 years, Mary Michele has helped women move beyond fashion rules, fleeting trends, and the pressure to look like everyone else to discover a style that feels unmistakably their own.
 
-Through coaching, courses, workshops, retreats, VIP Days, and powerful online content, she empowers women to rewrite their stories, shed limiting beliefs, and fully step into the vibrant, visible, and confident lives they deserve.
+Her work is rooted in a simple belief: great style isn’t really about fashion. It’s about identity.
+
+Through her signature approach, Mary Michele helps women understand the colors, silhouettes, proportions, style energy, and distinctive details that make them look and feel their best—so getting dressed becomes less about “What should I wear?” and more about confidently expressing who they are.
+
+A North Carolina native, entrepreneur, speaker, and lifelong student of personal transformation, Mary Michele understands firsthand how easily women can lose sight of themselves through the many seasons of life. Her own journey of reinvention has fueled her passion for helping women reconnect with the woman underneath—and make her visible again.
+
+Through coaching, courses, workshops, retreats, speaking, and Secrets of Signature Style, Mary Michele is redefining personal style for women who are ready to stop blending in, trust themselves again, and amplify what makes them distinct.
+
+Because you don’t need to become someone else to have unforgettable style.
+
+You simply need to become more of yourself.
 
 ### Let's Connect
 
